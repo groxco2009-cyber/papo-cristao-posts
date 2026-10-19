@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
     inputs:
       slot:
-        description: "Qual post? (1 a 5)"
-        default: "1"
+        description: "Qual post? (1 a 5, ou auto para o robô escolher)"
+        default: "auto"
       teste:
         description: "Modo teste (não publica de verdade)?"
         type: boolean
@@ -44,7 +44,12 @@ jobs:
         id: slot
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "slot=${{ github.event.inputs.slot }}" >> $GITHUB_OUTPUT
+            s="${{ github.event.inputs.slot }}"
+            if [ "$s" = "auto" ] || [ -z "$s" ]; then
+              s=$(python src/main.py proximo)
+              echo "Modo automático. Post da vez: $s (0 = nenhum agora)"
+            fi
+            echo "slot=$s" >> $GITHUB_OUTPUT
             echo "dry=${{ github.event.inputs.teste }}" >> $GITHUB_OUTPUT
           else
             s=$(python src/main.py proximo)
