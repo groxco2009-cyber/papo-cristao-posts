@@ -2,7 +2,8 @@
   "ponteiros": {
     "story": 1,
     "reel": 1,
-    "carrossel": 1
+    "carrossel": 1,
+    "feed_b": 1
   },
   "postados": {
     "2026-10-19-5": {
@@ -20,6 +21,13 @@
       "tentativas": 1,
       "ig": "17996422815029384",
       "fb": "1350815571452714_122110817277500726",
+      "_avancou": true
+    },
+    "2026-10-19-4": {
+      "_ponteiro": 0,
+      "tentativas": 1,
+      "ig": "17933922207407773",
+      "fb": "122110819953500726",
       "_avancou": true
     }
   }
