@@ -40,6 +40,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Instalar bibliotecas Python
+        run: pip install -r requirements.txt
+
       - name: Descobrir qual post é
         id: slot
         run: |
@@ -58,12 +61,11 @@ jobs:
             echo "dry=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Instalar dependências
+      - name: Instalar ffmpeg e fontes
         if: steps.slot.outputs.slot != '0'
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg fonts-dejavu-core
-          pip install -r requirements.txt
 
       - name: Gerar arte / vídeo e legenda
         if: steps.slot.outputs.slot != '0'
