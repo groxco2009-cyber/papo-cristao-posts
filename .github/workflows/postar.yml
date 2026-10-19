@@ -13,9 +13,9 @@ on:
         description: "Qual post? (1 a 5, ou auto para o robô escolher)"
         default: "auto"
       teste:
-        description: "Modo teste (não publica de verdade)?"
+        description: "Modo teste (não publica de verdade)? Deixe desmarcado para publicar."
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: write
