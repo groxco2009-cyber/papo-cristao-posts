@@ -65,8 +65,8 @@ git push -u origin main
 - **Link clicável:** no Instagram, link na legenda não é clicável. Coloque `papo-cristao.onrender.com` na **bio** do perfil (as legendas já dizem "link na bio").
 - **Música nos reels:** por padrão o reel leva um fundo musical suave sintetizado. Para músicas melhores, coloque arquivos `.mp3` **livres de direitos autorais** na pasta `assets/musica` (por exemplo, da Biblioteca de Áudio do YouTube). O robô sorteia uma.
 - **Mais textos:** abra `src/banco.py`, copie uma linha existente e mude o texto. Se quiser, peça aqui que eu escrevo mais.
-- **Horários:** ficam no arquivo `.github/workflows/postar.yml` (em UTC; Brasília = UTC menos 3).
-- **Atrasos:** o GitHub às vezes atrasa a execução em alguns minutos nos horários de pico. É normal.
+- **Como o agendamento funciona:** o robô acorda a cada 30 minutos, vê qual post está na hora (ou atrasado até 5 horas) e publica. Se o GitHub falhar um disparo, o próximo recupera. Os horários dos posts ficam em `src/main.py` (`HORAS`), em horário de Brasília.
+- **Execuções vazias:** na aba Actions vão aparecer várias execuções rápidas (uns 15 segundos) por dia. São as vezes em que o robô acordou e não havia post na hora. É normal.
 - **GitHub pausa agendamentos** se o repositório ficar 60 dias sem atividade. O robô faz um commit diário (arquivo `state.json`), então isso não deve acontecer.
 - **Se der erro de token** (código 190 ou 200): gere o token novamente (passo 2) e atualize o segredo `META_TOKEN`.
 - **Ver a prévia da fila:** `python src/main.py prever --dias 3` mostra o que vai ser postado.

@@ -93,12 +93,13 @@ def chave_dia(data, slot):
 def gerar(slot, out, data):
     est = carregar_estado()
     formato, _hora = SLOTS[slot]
-    ponteiro = est["ponteiros"].get(formato, 0)
+    # se este post já foi tentado hoje, reaproveita o mesmo conteúdo (evita trocar no meio)
+    ponteiro = est["postados"].get(chave_dia(data, slot), {}).get("_ponteiro", est["ponteiros"].get(formato, 0))
     item, pos = escolher(formato, ponteiro)
     os.makedirs(out, exist_ok=True)
     semente = f"{data}-{slot}"
     idx_visual = ponteiro + slot  # varia a paleta de cores
-    info = {"slot": slot, "formato": formato, "data": data, "arquivos": []}
+    info = {"slot": slot, "formato": formato, "data": data, "ponteiro": ponteiro, "arquivos": []}
 
     if formato.startswith("feed"):
         tema, destaque, apoio, corpo = item
@@ -141,6 +142,9 @@ def publicar(slot, out, data, base_url, dry):
         print(f"[DRY-RUN] publicaria {tipo}: {urls}\n{leg}")
         return 0
 
+    status.setdefault("_ponteiro", info.get("ponteiro", est["ponteiros"].get(SLOTS[slot][0], 0)))
+    status["tentativas"] = status.get("tentativas", 0) + 1
+
     token = os.environ["META_TOKEN"]
     ig_id = os.environ.get("IG_USER_ID")
     page_id = os.environ.get("FB_PAGE_ID")
@@ -149,6 +153,8 @@ def publicar(slot, out, data, base_url, dry):
     for u in urls:
         if not meta.esperar_url(u):
             print(f"ERRO: arquivo não ficou público: {u}")
+            est["postados"][chave] = status
+            salvar_estado(est)
             return 1
 
     erros = []
@@ -172,7 +178,7 @@ def publicar(slot, out, data, base_url, dry):
             print(f"[{nome}] ERRO: {e}")
 
     est["postados"][chave] = status
-    if status:  # algo foi publicado: avança a fila deste formato (uma vez só)
+    if status.get("ig") or status.get("fb"):  # algo foi publicado: avança a fila deste formato (uma vez só)
         formato = SLOTS[slot][0]
         if not est["postados"][chave].get("_avancou"):
             est["ponteiros"][formato] = est["ponteiros"].get(formato, 0) + 1
@@ -182,6 +188,33 @@ def publicar(slot, out, data, base_url, dry):
     est["postados"] = {k: v for k, v in est["postados"].items() if k[:10] >= corte}
     salvar_estado(est)
     return 1 if erros else 0
+
+
+# ------------------------------------------------------------------ proximo (autopiloto)
+HORAS = {1: (7, 0), 2: (10, 30), 3: (13, 0), 4: (18, 0), 5: (20, 30)}
+JANELA_HORAS = 5      # até quantas horas depois do horário ainda vale postar um atrasado
+MAX_TENTATIVAS = 3    # para de insistir depois disso (evita repetir erro o dia todo)
+
+
+def proximo(agora=None):
+    """Descobre qual post está na hora (ou atrasado) e ainda não saiu hoje. Imprime o slot, ou 0."""
+    agora = agora or datetime.now(TZ)
+    data = agora.strftime("%Y-%m-%d")
+    est = carregar_estado()
+    for slot in sorted(HORAS):
+        h, m = HORAS[slot]
+        alvo = agora.replace(hour=h, minute=m, second=0, microsecond=0)
+        if agora < alvo:
+            break  # os próximos ainda não chegaram
+        if agora - alvo > timedelta(hours=JANELA_HORAS):
+            continue  # muito atrasado, pula
+        st = est["postados"].get(chave_dia(data, slot), {})
+        if st.get("ig") and st.get("fb"):
+            continue  # já saiu nas duas
+        if st.get("tentativas", 0) >= MAX_TENTATIVAS:
+            continue
+        return slot
+    return 0
 
 
 # ------------------------------------------------------------------ prever
@@ -204,7 +237,8 @@ def prever(dias):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("comando", choices=["gerar", "publicar", "prever"])
+    ap.add_argument("comando", choices=["gerar", "publicar", "prever", "proximo"])
+    ap.add_argument("--agora", default="", help="só para teste: 'AAAA-MM-DD HH:MM' (horário de Brasília)")
     ap.add_argument("--slot", type=int, default=1, choices=list(SLOTS))
     ap.add_argument("--out", default="out")
     ap.add_argument("--base-url", default="")
@@ -214,6 +248,9 @@ def main():
     a = ap.parse_args()
     if a.comando == "gerar":
         gerar(a.slot, a.out, a.data)
+    elif a.comando == "proximo":
+        agora = datetime.strptime(a.agora, "%Y-%m-%d %H:%M").replace(tzinfo=TZ) if a.agora else None
+        print(proximo(agora))
     elif a.comando == "publicar":
         sys.exit(publicar(a.slot, a.out, a.data, a.base_url, a.dry_run))
     else:

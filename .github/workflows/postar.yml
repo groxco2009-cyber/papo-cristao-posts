@@ -1,13 +1,12 @@
 name: Postar no Papo Cristão
 
-# Horários em UTC (Brasília = UTC-3): 07:00, 10:30, 13:00, 18:00 e 20:30
+# O robô acorda a cada 30 minutos (em minutos "quebrados", que o GitHub respeita mais)
+# e vê qual post está na hora ou atrasado. Horários dos posts (Brasília):
+# 07:00 imagem | 10:30 reel | 13:00 carrossel | 18:00 imagem | 20:30 story
+# Se o GitHub atrasar ou pular um disparo, o próximo recupera o post pendente.
 on:
   schedule:
-    - cron: "0 10 * * *"   # 07:00 -> post de imagem (bom dia / fé)
-    - cron: "30 13 * * *"  # 10:30 -> reel
-    - cron: "0 16 * * *"   # 13:00 -> carrossel
-    - cron: "0 21 * * *"   # 18:00 -> post de imagem (reflexão / dica)
-    - cron: "30 23 * * *"  # 20:30 -> story
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       slot:
@@ -41,12 +40,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar dependências
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
-          pip install -r requirements.txt
-
       - name: Descobrir qual post é
         id: slot
         run: |
@@ -54,30 +47,35 @@ jobs:
             echo "slot=${{ github.event.inputs.slot }}" >> $GITHUB_OUTPUT
             echo "dry=${{ github.event.inputs.teste }}" >> $GITHUB_OUTPUT
           else
-            case "${{ github.event.schedule }}" in
-              "0 10 * * *")  s=1;;
-              "30 13 * * *") s=2;;
-              "0 16 * * *")  s=3;;
-              "0 21 * * *")  s=4;;
-              "30 23 * * *") s=5;;
-              *) s=1;;
-            esac
+            s=$(python src/main.py proximo)
+            echo "Post da vez: $s (0 = nenhum agora)"
             echo "slot=$s" >> $GITHUB_OUTPUT
             echo "dry=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Instalar dependências
+        if: steps.slot.outputs.slot != '0'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          pip install -r requirements.txt
+
       - name: Gerar arte / vídeo e legenda
+        if: steps.slot.outputs.slot != '0'
         run: python src/main.py gerar --slot ${{ steps.slot.outputs.slot }} --out out
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.slot.outputs.slot != '0'
         with:
           path: out
 
       - name: Colocar arquivos no ar (a Meta precisa de links públicos)
         id: deployment
+        if: steps.slot.outputs.slot != '0'
         uses: actions/deploy-pages@v4
 
       - name: Publicar no Instagram e no Facebook
+        if: steps.slot.outputs.slot != '0'
         env:
           META_TOKEN: ${{ secrets.META_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
@@ -89,7 +87,7 @@ jobs:
             --base-url "${{ steps.deployment.outputs.page_url }}" $DRY
 
       - name: Salvar andamento da fila
-        if: always()
+        if: always() && steps.slot.outputs.slot != '0'
         run: |
           git config user.name "papo-cristao-bot"
           git config user.email "bot@users.noreply.github.com"
