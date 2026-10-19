@@ -1,4 +1,12 @@
 {
-  "ponteiros": {},
-  "postados": {}
+  "ponteiros": {
+    "story": 1
+  },
+  "postados": {
+    "2026-10-19-5": {
+      "ig": "18103231781198566",
+      "fb": "1735722374166819",
+      "_avancou": true
+    }
+  }
 }
