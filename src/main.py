@@ -89,6 +89,10 @@ def chave_dia(data, slot):
     return f"{data}-{slot}"
 
 
+def instagram_pausado():
+    return os.environ.get("PAUSAR_IG", "").strip().lower() in ("1", "true", "sim", "s", "yes")
+
+
 # ------------------------------------------------------------------ gerar
 def gerar(slot, out, data):
     est = carregar_estado()
@@ -147,6 +151,9 @@ def publicar(slot, out, data, base_url, dry):
 
     token = os.environ["META_TOKEN"]
     ig_id = os.environ.get("IG_USER_ID")
+    if instagram_pausado():
+        print("[ig] Instagram PAUSADO (variavel PAUSAR_IG) - publicando so no Facebook")
+        ig_id = None
     page_id = os.environ.get("FB_PAGE_ID")
     m = meta.Meta(token, ig_id, page_id)
 
@@ -209,8 +216,8 @@ def proximo(agora=None):
         if agora - alvo > timedelta(hours=JANELA_HORAS):
             continue  # muito atrasado, pula
         st = est["postados"].get(chave_dia(data, slot), {})
-        if st.get("ig") and st.get("fb"):
-            continue  # já saiu nas duas
+        if (st.get("ig") or instagram_pausado()) and st.get("fb"):
+            continue  # já saiu nas duas (ou só no Facebook, se o Instagram está pausado)
         if st.get("tentativas", 0) >= MAX_TENTATIVAS:
             continue
         return slot

@@ -29,6 +29,8 @@ concurrency:
 jobs:
   postar:
     runs-on: ubuntu-latest
+    env:
+      PAUSAR_IG: ${{ vars.PAUSAR_IG }}
     timeout-minutes: 40
     environment:
       name: github-pages
