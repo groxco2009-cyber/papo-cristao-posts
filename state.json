@@ -1,7 +1,7 @@
 {
   "ponteiros": {
     "story": 13,
-    "reel": 13,
+    "reel": 14,
     "carrossel": 13,
     "feed_b": 13,
     "feed_a": 13
@@ -396,6 +396,12 @@
       "_ponteiro": 12,
       "tentativas": 1,
       "fb": "122115719049500726",
+      "_avancou": true
+    },
+    "2026-11-01-2": {
+      "_ponteiro": 13,
+      "tentativas": 1,
+      "fb": "29237745422577966",
       "_avancou": true
     }
   }
