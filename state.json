@@ -4,7 +4,7 @@
     "reel": 25,
     "carrossel": 25,
     "feed_b": 25,
-    "feed_a": 24
+    "feed_a": 25
   },
   "postados": {
     "2026-10-19-5": {
@@ -750,6 +750,12 @@
       "_ponteiro": 24,
       "tentativas": 1,
       "fb": "1850632316121229",
+      "_avancou": true
+    },
+    "2026-11-13-1": {
+      "_ponteiro": 24,
+      "tentativas": 1,
+      "fb": "122119874445500726",
       "_avancou": true
     }
   }
