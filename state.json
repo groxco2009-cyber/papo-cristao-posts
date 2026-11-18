@@ -3,7 +3,7 @@
     "story": 30,
     "reel": 31,
     "carrossel": 31,
-    "feed_b": 30,
+    "feed_b": 31,
     "feed_a": 30
   },
   "postados": {
@@ -918,6 +918,12 @@
       "_ponteiro": 30,
       "tentativas": 1,
       "fb": "1350815571452714_122121592443500726",
+      "_avancou": true
+    },
+    "2026-11-18-4": {
+      "_ponteiro": 30,
+      "tentativas": 1,
+      "fb": "122121652089500726",
       "_avancou": true
     }
   }
